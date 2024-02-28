@@ -17,7 +17,7 @@ When running docker containers you should be aware that this might expose your c
 
 Install the `docker` tools as explained here: https://docs.docker.com/engine/install/
 
-For Linux install `docker-compose` separately: https://docs.docker.com/compose/install/
+For Linux you may have to install `docker-compose` separately. Please check the manuals.
 
 ## Initial Setup
 
