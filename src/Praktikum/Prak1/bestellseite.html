@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <!-- für später: CSS include -->
+    <!-- <link rel="stylesheet" href="XXX.css"/> -->
+    <!-- für später: JavaScript include -->
+    <!-- <script src="XXX.js"></script> -->
+    <title>1337_Pizza: Bestellseite</title>
+</head>
+<body>
+    <h1>Bestellung</h1>
+    <section id="speisekarte">
+        <h2>Speisekarte</h2>
+        <article>
+            <img src="../../resources/Margherita.jpg" alt="Pizza Margherita" width="300" height="200">
+            <h3>Pizza Margherita</h3>
+            <p><strong>Preis:</strong> 4,00€</p>
+        </article>
+        <article>
+            <img src="../../resources/Salami.jpg" alt="Pizza Salami" width="300" height="200">
+            <h3>Pizza Salami</h3>
+            <p><strong>Preis:</strong> 4,50€</p>
+        </article>
+        <article>
+            <img src="../../resources/Hawaii.jpg" alt="Pizza Hawaii" width="300" height="200">
+            <h3>Pizza Hawaii</h3>
+            <p><strong>Preis:</strong> 5,50€</p>
+        </article>
+    </section>
+
+        <section id="warenkorb">
+            <fieldset>
+            <form action="https://echo.fbi.h-da.de/" method="post" accept-charset="UTF-8">
+                <h2>Warenkorb</h2>
+                <select name="pizzen_auswahl[]" size="3" tabindex="0" multiple>
+                <option value="Margherita" tabindex="1">Margherita</option>
+                <option value="Salami" tabindex="2" selected>Salami</option>
+                <option value="Hawaii" tabindex="3">Hawaii</option>
+                </select>
+                <p><strong>Gesamt:</strong> 14,00€</p>
+                <h2>Bestellung abschließen</h2>
+                    <label>Adresse:
+                        <input type="text" name="Adresse" placeholder="Ihre Adresse" value="" required/>
+                    </label>
+                    <input type="button" name="löschen_button" value="Alle Löschen" />
+                    <input type="button" name="löschen-auswahl_button" value="Auswahl löschen" />
+                    <input type="submit" name="bestellen_button" value="Bestellen" />
+            </form>
+            </fieldset>
+        </section>
+</body>
+</html>
