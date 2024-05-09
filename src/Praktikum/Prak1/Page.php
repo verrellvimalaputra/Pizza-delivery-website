@@ -50,7 +50,7 @@ abstract class Page
 
         $host = "localhost";
         /********************************************/
-        // This code switches from the the local installation (XAMPP) to the docker installation
+        // This code switches from the local installation (XAMPP) to the docker installation
         if (gethostbyname('mariadb') != "mariadb") { // mariadb is known?
             $host = "mariadb";
         }
