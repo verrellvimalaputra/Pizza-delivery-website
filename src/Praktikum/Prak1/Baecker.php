@@ -146,7 +146,7 @@ HEREDOC;
 
     }
 
-    private function addPizzaOrders($ordered_article_id, $ordering_id, $article_id, $article_name, $pizzaorders): void
+    private function addPizzaOrders($ordered_article_id, $ordering_id, $article_id, $article_name, $status): void
     {
         // Initialize variables to store the status for each radio button
         $bestellt_checked = '';
@@ -154,16 +154,15 @@ HEREDOC;
         $fertig_checked = '';
 
         // Check the status of the order and set the corresponding radio button to be checked
-        if (isset($pizzaorders[$article_id])) {
-            $status = $pizzaorders[$article_id]['status'];
+        if ($status > 0 && $status < 6) {
             switch ($status) {
-                case 'bestellt':
+                case '1':
                     $bestellt_checked = 'checked';
                     break;
-                case 'im Ofen':
+                case '2':
                     $im_ofen_checked = 'checked';
                     break;
-                case 'fertig':
+                case '3':
                     $fertig_checked = 'checked';
                     break;
                 default:
@@ -173,9 +172,9 @@ HEREDOC;
         echo <<<HEREDOC
         <tr>
         <td>$article_name</td>
-        <td><input type="radio" name="{$ordered_article_id}_status" value="bestellt" $bestellt_checked onclick="updateOrderStatus($ordered_article_id, bestellt)"> Bestellt</td>
-        <td><input type="radio" name="{$ordered_article_id}_status" value="im Ofen" $im_ofen_checked onclick="updateOrderStatus($ordered_article_id, im Ofen)"> Im Ofen</td>
-        <td><input type="radio" name="{$ordered_article_id}_status" value="fertig" $fertig_checked onclick="updateOrderStatus($ordered_article_id, fertig)"> Fertig</td>
+        <td><input type="radio" name="{$ordered_article_id}_status" value="bestellt" $bestellt_checked onclick="updateOrderStatus($ordered_article_id, 1)"> Bestellt</td>
+        <td><input type="radio" name="{$ordered_article_id}_status" value="im Ofen" $im_ofen_checked onclick="updateOrderStatus($ordered_article_id, 2)"> Im Ofen</td>
+        <td><input type="radio" name="{$ordered_article_id}_status" value="fertig" $fertig_checked onclick="updateOrderStatus($ordered_article_id, 3)"> Fertig</td>
     </tr>
 HEREDOC;
     }
