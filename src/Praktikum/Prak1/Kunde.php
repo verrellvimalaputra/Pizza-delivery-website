@@ -69,7 +69,7 @@ class Kunde extends Page
         $customerOrders = array();
         $sql = "
 SELECT o.ordering_id ,SUBSTRING_INDEX(o.address, ',', -1) AS customer
-FROM  ordering o
+FROM  pizzaservice.ordering o
 GROUP BY o.ordering_id
 ORDER BY o.ordering_id;";
         $recordset = $this->_database->query($sql);
@@ -92,7 +92,7 @@ ORDER BY o.ordering_id;";
         foreach ($customerOrders as $order_id => &$customerOrder) {
             $sql = "
             SELECT a.name, o.status
-FROM  article a, ordered_article o
+FROM  pizzaservice.article a, pizzaservice.ordered_article o
 WHERE a.article_id = o.article_id AND o.ordering_id = $order_id;";
             $recordset = $this->_database->query($sql);
             if (!$recordset) {
