@@ -139,7 +139,7 @@ HEREDOC;
         }
         echo <<<HEREDOC
 </section>
-<input type="button" name="bestellen_button" value="Neue Bestellung" onclick="window.open('bestellung.php', '_blank')">
+<input type="button" name="bestellen_button" value="Neue Bestellung" onclick="window.open('Bestellung.php', '_blank')">
 
 HEREDOC;
 

@@ -112,6 +112,7 @@ HEREDOC;
         foreach ($all_pizzas as $pizza) {
             $this->addPizzaArticle($pizza['name'], $pizza['price'], $pizza['picture']);
         }
+        echo "</section>";
         $this->addShoppingCart($all_pizzas);
 
         $this->generatePageFooter();
