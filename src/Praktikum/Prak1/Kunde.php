@@ -101,8 +101,9 @@ WHERE a.article_id = o.article_id AND o.ordering_id = $order_id;";
             $record = $recordset->fetch_assoc();
             while ($record) {
                 $name = $record['name'];
-                $status = $this->stateToString($record['status']);
-                $customerOrder['article_names'][] = $name;
+                $status_number = $record['status'];
+                $status = $this->stateToString($status_number);
+                $customerOrder['article_name'][] = $name;
                 $customerOrder['article_status'][] = $status;
                 $record = $recordset->fetch_assoc();
             }
@@ -157,7 +158,7 @@ HEREDOC;
         // to do: call processReceivedData() for all members
     }
 
-    private function stateToString(int $status):string
+    private function stateToString($status):string
     {
         if ($status == 0) {
             return "bestellt";
