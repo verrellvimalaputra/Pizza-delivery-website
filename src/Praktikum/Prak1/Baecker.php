@@ -109,6 +109,7 @@ class Pizzabaecker extends Page
      * Finally, the footer is added.
      * @return void
      */
+
     protected function generateView(): void
     {
         $all_pizzaorders = $this->getViewData(); //NOSONAR ignore unused $data
@@ -117,6 +118,7 @@ class Pizzabaecker extends Page
         echo <<<HEREDOC
 <h1>Pizza Bestellstatus</h1>
 <section id="bestellungen">
+<form method = "POST" action = "Baecker.php">
 <table id="bestellungenstatus" border="0">
 <tr>
     <th>Pizza</th>
@@ -128,7 +130,9 @@ HEREDOC;
         foreach ($all_pizzaorders as $pizzaorders) {
             $this->addPizzaOrders($pizzaorders['ordered_article_id'], $pizzaorders['ordering_id'], $pizzaorders['article_id'], $pizzaorders['article_name'], $pizzaorders['status']);
         }
-
+        echo <<<HEREDOC
+        </table><input type = "submit" value = "update"></form>
+    HEREDOC;
         $this->generatePageFooter();
     }
 
@@ -142,7 +146,14 @@ HEREDOC;
     protected function processReceivedData(): void
     {
         parent::processReceivedData();
-        // to do: call processReceivedData() for all members
+        foreach ($_POST as $key => $value) {
+            $sql = "UPDATE ordered_article
+                SET status = $value
+                WHERE ordered_article_id = $key";
+        $this->_database->query($sql);
+        }
+        //header("Location: Baecker.php");
+        //exit;
 
     }
 
@@ -172,22 +183,12 @@ HEREDOC;
         echo <<<HEREDOC
         <tr>
         <td>$article_name</td>
-        <td><input type="radio" name="{$ordered_article_id}_status" value="bestellt" $bestellt_checked onclick="updateOrderStatus($ordered_article_id, 1)"> Bestellt</td>
-        <td><input type="radio" name="{$ordered_article_id}_status" value="im Ofen" $im_ofen_checked onclick="updateOrderStatus($ordered_article_id, 2)"> Im Ofen</td>
-        <td><input type="radio" name="{$ordered_article_id}_status" value="fertig" $fertig_checked onclick="updateOrderStatus($ordered_article_id, 3)"> Fertig</td>
+        <td><input type="radio" name= {$ordered_article_id} value= 1 $bestellt_checked> Bestellt</td>
+        <td><input type="radio" name= {$ordered_article_id} value= 2 $im_ofen_checked> Im Ofen</td>
+        <td><input type="radio" name= {$ordered_article_id} value= 3 $fertig_checked> Fertig</td>
     </tr>
 HEREDOC;
     }
-
-    //save the updated status to database
-    private function updateOrderStatus($ordered_article_id, $status): void
-    {
-        $sql = "UPDATE ordered_article
-                SET status = $status
-                WHERE ordered_article_id = $ordered_article_id;";
-        $this->db->query($sql);
-    }
-
     /**
      * This main-function has the only purpose to create an instance
      * of the class and to get all the things going.
