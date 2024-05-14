@@ -71,7 +71,8 @@ class Pizzabaecker extends Page
         $pizzaorders = array();
         $sql = "SELECT oa.ordered_article_id, oa.ordering_id, oa.article_id, oa.status, a.name
                 FROM pizzaservice.ordered_article AS oa
-                INNER JOIN pizzaservice.article AS a ON oa.article_id = a.article_id";
+                INNER JOIN pizzaservice.article AS a ON oa.article_id = a.article_id
+                WHERE oa.status <= 2";
         $recordset = $this->_database->query($sql);
         if (!$recordset) {
             throw new Exception("Abfrage fehlgeschlagen: " . $this->database->error);
@@ -128,7 +129,7 @@ class Pizzabaecker extends Page
 </tr>
 HEREDOC;
         foreach ($all_pizzaorders as $pizzaorders) {
-            $this->addPizzaOrders($pizzaorders['ordered_article_id'], $pizzaorders['ordering_id'], $pizzaorders['article_id'], $pizzaorders['article_name'], $pizzaorders['status']);
+            $this->generatePizzaOrderList($pizzaorders['ordered_article_id'], $pizzaorders['article_name'], $pizzaorders['status']);
         }
         echo <<<HEREDOC
         </table><input type = "submit" value = "update"></form>
@@ -158,7 +159,7 @@ HEREDOC;
         }    
     }
 
-    private function addPizzaOrders($ordered_article_id, $ordering_id, $article_id, $article_name, $status): void
+    private function generatePizzaOrderList($ordered_article_id, $article_name, $status): void
     {
         // Initialize variables to store the status for each radio button
         $bestellt_checked = '';
@@ -166,15 +167,15 @@ HEREDOC;
         $fertig_checked = '';
 
         // Check the status of the order and set the corresponding radio button to be checked
-        if ($status > 0 && $status < 6) {
+        if ($status >= 0 && $status < 3) {
             switch ($status) {
-                case '1':
+                case '0':
                     $bestellt_checked = 'checked';
                     break;
-                case '2':
+                case '1':
                     $im_ofen_checked = 'checked';
                     break;
-                case '3':
+                case '2':
                     $fertig_checked = 'checked';
                     break;
                 default:
