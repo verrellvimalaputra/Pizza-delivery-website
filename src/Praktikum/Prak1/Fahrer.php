@@ -113,6 +113,7 @@ HAVING MIN(r.status) >= 2 AND MIN(r.status) != 4;";
         echo <<<HEREDOC
 <h1>Fahrer (Auslieferbare Bestellungen)</h1>
     <section id="Bestellungen">
+    <form action="Fahrer.php" method="POST" accept-charset="UTF-8">
 HEREDOC;
         foreach ($all_deliveries as $order_id => $order) {
             $this->addDelivery(
@@ -120,6 +121,8 @@ HEREDOC;
                 $order['order_price'], $order['status']);
         }
         echo <<<HEREDOC
+        <input type = "submit" value = "update">
+        </form>
 </section>
 
 HEREDOC;
@@ -135,8 +138,18 @@ HEREDOC;
      */
     protected function processReceivedData():void
     {
+        //var_dump($_POST);
         parent::processReceivedData();
-        // to do: call processReceivedData() for all members
+        if(count($_POST)){
+            foreach ($_POST as $key => $value) {
+                $sql = "UPDATE ordered_article
+                    SET status = $value
+                    WHERE ordering_id = $key";
+            $this->_database->query($sql);
+            }
+        header("Location: Fahrer.php");
+        die();
+        }    
     }
 
     protected function addDelivery(
@@ -144,85 +157,56 @@ HEREDOC;
     {
         echo <<<HEREDOC
 <article>
-    <fieldset>
-        <form action="https://echo.fbi.h-da.de/" method="post" accept-charset="UTF-8">
-            <h2>Order: $order_id </h2>
-            <h3>$address</h3>
-            <p>$ordered_pizzas <strong>Preis: </strong>$order_price €</p>
+    <fieldset>        
+        <h2>Order: $order_id </h2>
+        <h3>$address</h3>
+        <p>$ordered_pizzas <strong>Preis: </strong>$order_price €</p>
 HEREDOC;
-        $this->getradioButtons($status);
+        $this->getradioButtons($order_id, $status);
         echo <<<HEREDOC
-        </form>
     </fieldset>
 </article>
 HEREDOC;
 
     }
 
-    protected function getradioButtons($status)
-    {
-        if ($status < 2) {
-            echo <<<HEREDOC
-<label>
-                    fertig
-                    <input type="radio" name="bestellstatus_16" value="fertig">
-                </label>
-                <label>
-                    unterwegs
-                    <input type="radio" name="bestellstatus_16" value="unterwegs">
-                </label>
-                <label>
-                    geliefert
-                    <input type="radio" name="bestellstatus_16" value="geliefert">
-                </label>
-HEREDOC;
+    protected function getradioButtons($order_id, $status)
+    {   
+        // Initialize variables to store the status for each radio button
+        $fertig_checked = '';
+        $unterwegs_checked = '';
+        $geliefert_checked = '';
 
-        } elseif ($status == 2){
-            echo <<<HEREDOC
-<label>
-                    fertig
-                    <input type="radio" name="bestellstatus_16" value="fertig" checked>
-                </label>
-                <label>
-                    unterwegs
-                    <input type="radio" name="bestellstatus_16" value="unterwegs">
-                </label>
-                <label>
-                    geliefert
-                    <input type="radio" name="bestellstatus_16" value="geliefert">
-                </label>
-HEREDOC;
-        } elseif ($status == 3){
-            echo <<<HEREDOC
-<label>
-                    fertig
-                    <input type="radio" name="bestellstatus_16" value="fertig">
-                </label>
-                <label>
-                    unterwegs
-                    <input type="radio" name="bestellstatus_16" value="unterwegs" checked>
-                </label>
-                <label>
-                    geliefert
-                    <input type="radio" name="bestellstatus_16" value="geliefert">
-                </label>
-HEREDOC;
-        } elseif ($status == 4){
-            echo <<<HEREDOC
-<label>
-                    fertig
-                    <input type="radio" name="bestellstatus_16" value="fertig">
-                </label>
-                <label>
-                    unterwegs
-                    <input type="radio" name="bestellstatus_16" value="unterwegs">
-                </label>
-                <label>
-                    geliefert
-                    <input type="radio" name="bestellstatus_16" value="geliefert" checked>
-                </label>
-HEREDOC;
+        // Check the status of the order and set the corresponding radio button to be checked
+        switch ($status) {
+            case '2':
+                $fertig_checked = 'checked';
+                break;
+            case '3':
+                $unterwegs_checked = 'checked';
+                break;
+            case '4':
+                $geliefert_checked = 'checked';
+                break;
+            default:
+                break;
         }
+        echo <<<HEREDOC
+        <label>
+            <input type="radio" name={$order_id} value= 2 $fertig_checked>
+            fertig
+        </label>
+        <label>
+            <input type="radio" name={$order_id} value= 3 $unterwegs_checked>
+            unterwegs
+        </label>
+        <label>
+            <input type="radio" name={$order_id} value= 4 $geliefert_checked>
+            geliefert
+        </label>
+HEREDOC;
+       
+        
     }
 
     /**
