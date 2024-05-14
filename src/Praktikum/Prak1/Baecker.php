@@ -146,15 +146,16 @@ HEREDOC;
     protected function processReceivedData(): void
     {
         parent::processReceivedData();
-        foreach ($_POST as $key => $value) {
-            $sql = "UPDATE ordered_article
-                SET status = $value
-                WHERE ordered_article_id = $key";
-        $this->_database->query($sql);
-        }
-        //header("Location: Baecker.php");
-        //exit;
-
+        if(count($_POST)){
+            foreach ($_POST as $key => $value) {
+                $sql = "UPDATE ordered_article
+                    SET status = $value
+                    WHERE ordered_article_id = $key";
+            $this->_database->query($sql);
+            }
+        header("Location: Baecker.php");
+        die();
+        }    
     }
 
     private function addPizzaOrders($ordered_article_id, $ordering_id, $article_id, $article_name, $status): void

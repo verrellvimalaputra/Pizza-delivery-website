@@ -62,7 +62,7 @@ class Bestellung extends Page
      * @return array An array containing the requested data.
      * This may be a normal array, an empty array or an associative array.
      */
-    protected function getViewData():array
+    protected function getViewData(): array
     {
         // to do: fetch data for this view from the database
         // to do: return array containing data
@@ -99,7 +99,7 @@ class Bestellung extends Page
      * Finally, the footer is added.
      * @return void
      */
-    protected function generateView():void
+    protected function generateView(): void
     {
         $all_pizzas = $this->getViewData(); //NOSONAR ignore unused $data
         $this->generatePageHeader('1337_Pizza Bestellung'); //to do: set optional parameters
@@ -112,7 +112,6 @@ HEREDOC;
         foreach ($all_pizzas as $pizza) {
             $this->addPizzaArticle($pizza['name'], $pizza['price'], $pizza['picture']);
         }
-        echo "</section>";
         $this->addShoppingCart($all_pizzas);
 
         $this->generatePageFooter();
@@ -124,14 +123,15 @@ HEREDOC;
      * data do it here.
      * @return void
      */
-    protected function processReceivedData():void
+    protected function processReceivedData(): void
     {
         parent::processReceivedData();
         // to do: call processReceivedData() for all members
 
     }
 
-    private function addPizzaArticle($pizza_name, $pizza_price, $pizza_image):void{
+    private function addPizzaArticle($pizza_name, $pizza_price, $pizza_image): void
+    {
         echo <<<HEREDOC
 <fieldset>
     <article>
@@ -144,7 +144,7 @@ HEREDOC;
 
     }
 
-    private function addShoppingCart($allPizzas):void
+    private function addShoppingCart($allPizzas): void
     {
         echo <<<EOC
 <section id="warenkorb">
@@ -190,7 +190,7 @@ EOC;
      * call it without first creating an instance of the class.
      * @return void
      */
-    public static function main():void
+    public static function main(): void
     {
         try {
             $page = new Bestellung();
