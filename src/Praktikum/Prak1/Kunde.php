@@ -68,7 +68,7 @@ class Kunde extends Page
         // to do: return array containing data
         $customerOrders = array();
         $sql = "
-SELECT o.ordering_id ,SUBSTRING_INDEX(o.address, ',', -1) AS customer
+SELECT o.ordering_id ,o.address AS customer
 FROM  pizzaservice.ordering o
 GROUP BY o.ordering_id
 ORDER BY o.ordering_id;";
