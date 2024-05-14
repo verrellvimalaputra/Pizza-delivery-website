@@ -73,7 +73,7 @@ class Fahrer extends Page
 FROM pizzaservice.ordering o, pizzaservice.ordered_article r, pizzaservice.article a
 WHERE a.article_id = r.article_id AND r.ordering_id = o.ordering_id
 GROUP BY o.ordering_id
-HAVING MIN(r.status) >= 2 AND MAX(r.status) != 4;";
+HAVING MIN(r.status) >= 2 AND MIN(r.status) != 4;";
         $recordset = $this->_database->query($sql);
         if (!$recordset) {
             throw new Exception("Abfrage fehlgeschlagen: " . $this->database->error);
@@ -121,7 +121,6 @@ HEREDOC;
         }
         echo <<<HEREDOC
 </section>
-<input type="button" name="bestellen_button" value="Neue Bestellung" onclick="window.open('bestellung.php', '_blank')">
 
 HEREDOC;
 
