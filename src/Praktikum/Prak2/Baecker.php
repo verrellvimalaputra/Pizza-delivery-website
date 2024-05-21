@@ -115,12 +115,12 @@ class Pizzabaecker extends Page
      {
          $all_pizzaorders = $this->getViewData();
          $this->generatePageHeader('1337_Pizza Pizzabäcker');
-     
+
          echo <<<HEREDOC
      <h1>Pizza Bestellstatus</h1>
      <section id="bestellungen">
      HEREDOC;
-     
+
          if (empty($all_pizzaorders)) {
              // Display message when there are no orders to process
              echo '<p>There are no orders to process at the moment.</p>';
@@ -198,7 +198,7 @@ class Pizzabaecker extends Page
                     $fertig_checked = 'checked';
                     break;
                 default:
-                    break;
+                    throw new Exception('wrong status detected!');
             }
         }
         echo <<<HEREDOC
