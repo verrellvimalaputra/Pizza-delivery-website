@@ -56,6 +56,13 @@ class Bestellung extends Page
         parent::__destruct();
     }
 
+    /*
+    public function dump($str): void{
+        echo '<pre>';
+        var_dump($str);
+        echo '</pre>';
+    }*/
+
     /**
      * Fetch all data that is necessary for later output.
      * Data is returned in an array e.g. as associative array.
@@ -75,10 +82,19 @@ class Bestellung extends Page
 
         $record = $recordset->fetch_assoc();
         while ($record) {
-            $article_id = $record['article_id'];
-            $name = $record['name'];
-            $picture = $record['picture'];
-            $price = $record['price'];
+            $article_id = "";
+            $name = "";
+            $picture = "";
+            $price = "";
+            if (isset($record['article_id']))
+                $article_id = $record['article_id'];
+            if (isset($record['article_id']))
+                $name = $record['name'];
+            if (isset($record['article_id']))
+                $picture = $record['picture'];
+            if (isset($record['article_id']))
+                $price = $record['price'];
+
             $pizza_data = array(
                 'name' => $name,
                 'picture' => $picture,
@@ -113,6 +129,8 @@ HEREDOC;
             $this->addPizzaArticle($pizza['name'], $pizza['price'], $pizza['picture']);
         }
         $this->addShoppingCart($all_pizzas);
+        echo '</section>';
+
 
         $this->generatePageFooter();
     }
@@ -128,31 +146,61 @@ HEREDOC;
         parent::processReceivedData();
         // to do: call processReceivedData() for all members
         $order_id = NULL;
-        echo '<pre>';
-        var_dump($_POST);
-        echo '</pre>';
-        echo '<pre>';
-        var_dump($_GET);
-        var_dump(isset($_GET));
-        var_dump($_SERVER);
-        echo '</pre>';
 
-        if (isset($_SERVER["REQUEST_METHOD"])=="POST"){
-
-        }
-        if ( isset($_POST) && count($_POST) ) {
+        if ( isset($_POST) && count($_POST) && isset($_POST['bestellen_button']) ) {
+            $order_address = "";
+            $order_username = "";
+            $order_telephone = "";
+            $ordered_pizzas = array();
             if ( isset($_POST['adresse']) ) {
                 $order_address = $_POST['adresse'];
-                $sql = "INSERT INTO pizzaservice.ordering (address) VALUE $order_address";
-                $this->_database->query($sql);
-                $order_id = $this->db->insert_id;
             }
-            if (isset($_POST['pizzen_auswahl[]'])){
+            if ( isset($_POST['telefon']) ) {
+                $order_telephone = $_POST['telefon'];
+            }
+            if ( isset($_POST['username']) ) {
+                $order_username = $_POST['username'];
+            }
+            if (isset($_POST['pizzen_auswahl'])){
+                $ordered_pizzas = $_POST['pizzen_auswahl'];
+            } else {
+                throw new Exception('Keine Pizzen ausgewählt!');
+            }
+            $full_address = $this->_database->escape_string($order_address . ', ' . $order_telephone . ', ' . $order_username);
 
+            // Add ordering
+            $sql = "
+            INSERT INTO pizzaservice.ordering (address)
+            VALUES ('$full_address');";
+            $this->_database->query($sql);
+            $order_id = $this->_database->insert_id;
+
+            // Add all ordered_articles
+            foreach ($ordered_pizzas as $pizza){
+                $article_id = $this->getArticleId($pizza);
+                $sql = "
+                INSERT INTO pizzaservice.ordered_article (ordering_id, article_id) 
+                VALUES ('$order_id', '$article_id')";
+                $this->_database->query($sql);
             }
+            header('Location: Kunde.php'); die;
         }
 
+    }
 
+    private function getArticleId($article_name): int
+    {
+        $article_name = $this->_database->real_escape_string($article_name);
+        $sql = "
+        SELECT article_id
+        FROM pizzaservice.article
+        WHERE name = '$article_name'";
+        $recordset = $this->_database->query($sql);
+        $record = $recordset->fetch_assoc();
+        if (isset($record['article_id'])){
+            return (int)$record['article_id'];
+        }
+        throw new Exception('Article \'' . $article_name . ' not found!');
     }
 
     private function addPizzaArticle($pizza_name, $pizza_price, $pizza_image): void
@@ -192,7 +240,16 @@ HEREDOC;
             <p><strong>Gesamt:</strong> 14,00€</p>
             <h2>Bestellung abschließen</h2>
             <label>Adresse:
-                <input type="text" name="adresse" placeholder="Ihre Adresse" value="" required/>
+                <input type="text" name="adresse" placeholder="Ihre Adresse" value="" 
+                pattern="[^,]*" title="Keine Kommas erlaubt" required/>
+            </label>
+            <label>Telefon: 
+                <input type="text" name="telefon" value="" 
+                pattern="[0-9]*" placeholder="Tel. Nummer" title="Nur Zahlen erlaubt">
+            </label>
+            <label>Name:
+                <input type="text" value="" name="username" placeholder="Ihr Name" 
+                pattern="[^,]*" title="Keine Kommas erlaubt" required>
             </label>
             <input type="button" name="löschen_button" value="Alle Löschen" />
             <input type="button" name="löschen-auswahl_button" value="Auswahl löschen" />
@@ -222,8 +279,8 @@ EOC;
             $page->processReceivedData();
             $page->generateView();
         } catch (Exception $e) {
-            //header("Content-type: text/plain; charset=UTF-8");
-            header("Content-type: text/html; charset=UTF-8");
+            // header("Content-type: text/plain; charset=UTF-8");
+            // header("Content-type: text/html; charset=UTF-8");
             echo $e->getMessage();
         }
     }

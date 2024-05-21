@@ -128,7 +128,9 @@ class Pizzabaecker extends Page
 </tr>
 HEREDOC;
         foreach ($all_pizzaorders as $pizzaorders) {
-            $this->addPizzaOrders($pizzaorders['ordered_article_id'], $pizzaorders['ordering_id'], $pizzaorders['article_id'], $pizzaorders['article_name'], $pizzaorders['status']);
+            if ($pizzaorders['status'] <= 3) {
+                $this->addPizzaOrders($pizzaorders['ordered_article_id'], $pizzaorders['ordering_id'], $pizzaorders['article_id'], $pizzaorders['article_name'], $pizzaorders['status']);
+            }
         }
         echo <<<HEREDOC
         </table><input type = "submit" value = "update"></form>
@@ -166,29 +168,29 @@ HEREDOC;
         $fertig_checked = '';
 
         // Check the status of the order and set the corresponding radio button to be checked
-        if ($status > 0 && $status < 6) {
+        if ($status >= 0 && $status < 3) {
             switch ($status) {
-                case '1':
+                case '0':
                     $bestellt_checked = 'checked';
                     break;
-                case '2':
+                case '1':
                     $im_ofen_checked = 'checked';
                     break;
-                case '3':
+                case '2':
                     $fertig_checked = 'checked';
                     break;
                 default:
-                    break;
+                    throw new Exception('wrong status detected!');
             }
-        }
-        echo <<<HEREDOC
+            echo <<<HEREDOC
         <tr>
         <td>$article_name</td>
-        <td><input type="radio" name= {$ordered_article_id} value= 1 $bestellt_checked> Bestellt</td>
-        <td><input type="radio" name= {$ordered_article_id} value= 2 $im_ofen_checked> Im Ofen</td>
-        <td><input type="radio" name= {$ordered_article_id} value= 3 $fertig_checked> Fertig</td>
+        <td><input type="radio" name= {$ordered_article_id} value= 0 $bestellt_checked> Bestellt</td>
+        <td><input type="radio" name= {$ordered_article_id} value= 1 $im_ofen_checked> Im Ofen</td>
+        <td><input type="radio" name= {$ordered_article_id} value= 2 $fertig_checked> Fertig</td>
     </tr>
 HEREDOC;
+        }
     }
     /**
      * This main-function has the only purpose to create an instance

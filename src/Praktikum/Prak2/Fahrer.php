@@ -17,6 +17,7 @@
 
 // to do: change name 'PageTemplate' throughout this file
 require_once './Page.php';
+require_once './Kundenbestellung.php';
 
 /**
  * This is a template for top level classes, which represent
@@ -67,32 +68,36 @@ class Fahrer extends Page
         // to do: fetch data for this view from the database
         // to do: return array containing data
         $all_deliveries = array();
-        $sql =
-            "SELECT o.ordering_id, o.address, GROUP_CONCAT(a.name ORDER BY a.name) AS ordered_pizzas, 
-       ROUND(SUM(a.price),2) AS order_price, MIN(r.status) AS status
-FROM pizzaservice.ordering o, pizzaservice.ordered_article r, pizzaservice.article a
-WHERE a.article_id = r.article_id AND r.ordering_id = o.ordering_id
+        $all_delivery_order_ids = array();
+        $sql = "
+SELECT o.ordering_id
+FROM pizzaservice.ordering o, pizzaservice.ordered_article r
+WHERE o.ordering_id = r.ordering_id
 GROUP BY o.ordering_id
-HAVING MIN(r.status) >= 2 AND MIN(r.status) != 4;";
+HAVING MIN(r.status) >= 2 AND MIN(r.status) < 4
+ORDER BY o.ordering_id;";
         $recordset = $this->_database->query($sql);
         if (!$recordset) {
             throw new Exception("Abfrage fehlgeschlagen: " . $this->database->error);
         }
         $record = $recordset->fetch_assoc();
         while ($record) {
-            $order_id = $record['ordering_id'];
-            $address = $record['address'];
-            $ordered_pizzas = $record['ordered_pizzas'];
-            $order_price = $record['order_price'];
-            $order_status = $record['status'];
-            $all_deliveries[$order_id] = [
-                'order_id' => $order_id,
-                'address' => $address,
-                'ordered_pizzas' => $ordered_pizzas,
-                'order_price' => $order_price,
-                'status' => $order_status
-            ];
+            $all_delivery_order_ids[] = $record['ordering_id'];
             $record = $recordset->fetch_assoc();
+        }
+        $recordset->free();
+
+        foreach ($all_delivery_order_ids as $order_id) {
+            $sql = "
+            SELECT a.name, o.address, r.status, a.price
+FROM pizzaservice.ordering o, pizzaservice.ordered_article r, pizzaservice.article a
+WHERE a.article_id = r.article_id AND r.ordering_id = o.ordering_id AND o.ordering_id = $order_id;";
+            $recordset = $this->_database->query($sql);
+            if (!$recordset) {
+                throw new Exception("Order-Abfrage fehlgeschlagen: " . $this->database->error);
+            }
+            $all_deliveries[] = new Kundenbestellung(intval($order_id), $recordset);
+            $recordset->free();
         }
         return $all_deliveries;
     }
@@ -108,16 +113,14 @@ HAVING MIN(r.status) >= 2 AND MIN(r.status) != 4;";
     protected function generateView():void
     {
         $all_deliveries = $this->getViewData(); //NOSONAR ignore unused $data
-        $this->generatePageHeader('1337_Pizza: Kundenübersicht'); //to do: set optional parameters
+        $this->generatePageHeader('1337_Pizza: Fahrerübersicht'); //to do: set optional parameters
         // to do: output view of this page
         echo <<<HEREDOC
 <h1>Fahrer (Auslieferbare Bestellungen)</h1>
     <section id="Bestellungen">
 HEREDOC;
-        foreach ($all_deliveries as $order_id => $order) {
-            $this->addDelivery(
-                $order_id, $order['address'], $order['ordered_pizzas'],
-                $order['order_price'], $order['status']);
+        foreach ($all_deliveries as $order) {
+            $this->addDelivery($order);
         }
         echo <<<HEREDOC
 </section>
@@ -136,93 +139,93 @@ HEREDOC;
     protected function processReceivedData():void
     {
         parent::processReceivedData();
+        $order_id = 0;
+        $buttongroup = "bestellstatus_";
         // to do: call processReceivedData() for all members
+        if (isset($_POST) && count($_POST)) {
+            if (isset($_POST['order_id'])) {
+                $order_id = intval($_POST['order_id']);
+                $buttongroup .= $order_id;
+                if (isset( $_POST[$buttongroup])) {
+                    $status = $this->statusToInt($_POST[$buttongroup]);
+                    $sql = "
+UPDATE pizzaservice.ordered_article 
+SET status = $status
+WHERE ordering_id = $order_id;";
+                    $this->_database->query($sql);
+                    header('Location: Fahrer.php'); die;
+
+                }
+            }
+        }
+
     }
 
-    protected function addDelivery(
-        $order_id, $address, $ordered_pizzas, $order_price, $status): void
+    protected function addDelivery(Kundenbestellung $order): void
     {
+        $all_pizzas = $order->get_all_pizza_names();
         echo <<<HEREDOC
 <article>
     <fieldset>
-        <form action="https://echo.fbi.h-da.de/" method="post" accept-charset="UTF-8">
-            <h2>Order: $order_id </h2>
-            <h3>$address</h3>
-            <p>$ordered_pizzas <strong>Preis: </strong>$order_price €</p>
+        <h2>Order: {$order->order_id} </h2>
+        <h3>{$order->address}</h3>
+        <p>$all_pizzas<strong>Preis: </strong>{$order->order_price} €</p>
 HEREDOC;
-        $this->getradioButtons($status);
+        $this->getradioButtons($order->getOrderStatus(), $order->order_id);
         echo <<<HEREDOC
-        </form>
     </fieldset>
 </article>
 HEREDOC;
 
     }
 
-    protected function getradioButtons($status)
+    protected function getradioButtons($status, int $order_id)
     {
-        if ($status < 2) {
-            echo <<<HEREDOC
-<label>
-                    fertig
-                    <input type="radio" name="bestellstatus_16" value="fertig">
-                </label>
-                <label>
-                    unterwegs
-                    <input type="radio" name="bestellstatus_16" value="unterwegs">
-                </label>
-                <label>
-                    geliefert
-                    <input type="radio" name="bestellstatus_16" value="geliefert">
-                </label>
+        $fertig_checked = '';
+        $unterwegs_checked = '';
+        $geliefert_checked = '';
+        switch ($status) {
+            case 2:
+                $fertig_checked = 'checked';
+                break;
+            case 3:
+                $unterwegs_checked = 'checked';
+                break;
+            case 4:
+                $geliefert_checked = 'checked';
+                break;
+
+        }
+        $buttongroup = "bestellstatus_".$order_id;
+        echo <<<HEREDOC
+<form action="Fahrer.php" method="post" accept-charset="UTF-8">
+    <input type="hidden" name="order_id" value="$order_id">
+    <label>
+        fertig
+        <input type="radio" name="$buttongroup" value="fertig" $fertig_checked>
+    </label>
+    <label>
+        unterwegs
+        <input type="radio" name="$buttongroup" value="unterwegs" $unterwegs_checked>
+    </label>
+    <label>
+        geliefert
+        <input type="radio" name="$buttongroup" value="geliefert" $geliefert_checked>
+    </label>
+    <input type="submit" name="aktualisieren" value="aktualisieren">
+</form>
 HEREDOC;
 
-        } elseif ($status == 2){
-            echo <<<HEREDOC
-<label>
-                    fertig
-                    <input type="radio" name="bestellstatus_16" value="fertig" checked>
-                </label>
-                <label>
-                    unterwegs
-                    <input type="radio" name="bestellstatus_16" value="unterwegs">
-                </label>
-                <label>
-                    geliefert
-                    <input type="radio" name="bestellstatus_16" value="geliefert">
-                </label>
-HEREDOC;
-        } elseif ($status == 3){
-            echo <<<HEREDOC
-<label>
-                    fertig
-                    <input type="radio" name="bestellstatus_16" value="fertig">
-                </label>
-                <label>
-                    unterwegs
-                    <input type="radio" name="bestellstatus_16" value="unterwegs" checked>
-                </label>
-                <label>
-                    geliefert
-                    <input type="radio" name="bestellstatus_16" value="geliefert">
-                </label>
-HEREDOC;
-        } elseif ($status == 4){
-            echo <<<HEREDOC
-<label>
-                    fertig
-                    <input type="radio" name="bestellstatus_16" value="fertig">
-                </label>
-                <label>
-                    unterwegs
-                    <input type="radio" name="bestellstatus_16" value="unterwegs">
-                </label>
-                <label>
-                    geliefert
-                    <input type="radio" name="bestellstatus_16" value="geliefert" checked>
-                </label>
-HEREDOC;
-        }
+    }
+
+    private function statusToInt($status): int {
+        if ($status == "fertig")
+            return 2;
+        else if ($status == "unterwegs")
+            return 3;
+        else if ($status == "geliefert")
+            return 4;
+        return 0;
     }
 
     /**

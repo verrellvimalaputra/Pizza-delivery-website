@@ -17,6 +17,7 @@
 
 // to do: change name 'PageTemplate' throughout this file
 require_once './Page.php';
+require_once './Kundenbestellung.php';
 
 /**
  * This is a template for top level classes, which represent
@@ -33,6 +34,7 @@ class Kunde extends Page
 {
     // to do: declare reference variables for members
     // representing substructures/blocks
+
 
     /**
      * Instantiates members (to be defined above).
@@ -66,11 +68,14 @@ class Kunde extends Page
     {
         // to do: fetch data for this view from the database
         // to do: return array containing data
-        $customerOrders = array();
+        $all_orders = array();
+        $all_order_ids = array();
         $sql = "
-SELECT o.ordering_id ,o.address AS customer
-FROM  pizzaservice.ordering o
+SELECT o.ordering_id
+FROM pizzaservice.ordering o, pizzaservice.ordered_article r
+WHERE o.ordering_id = r.ordering_id
 GROUP BY o.ordering_id
+HAVING MIN(r.status) < 4
 ORDER BY o.ordering_id;";
         $recordset = $this->_database->query($sql);
         if (!$recordset) {
@@ -78,39 +83,23 @@ ORDER BY o.ordering_id;";
         }
         $record = $recordset->fetch_assoc();
         while ($record) {
-            $order_id = $record['ordering_id'];
-            $customer_name = $record['customer'];
-            $customerOrders[$order_id] = [
-                'customer_name' => $customer_name,
-                'article_names' => [],
-                'article_status' => [],
-            ];
+            $all_order_ids[] = intval($record['ordering_id']);
             $record = $recordset->fetch_assoc();
         }
         $recordset->free();
-
-        foreach ($customerOrders as $order_id => &$customerOrder) {
+        foreach ($all_order_ids as $order_id) {
             $sql = "
-            SELECT a.name, o.status
-FROM  pizzaservice.article a, pizzaservice.ordered_article o
-WHERE a.article_id = o.article_id AND o.ordering_id = $order_id;";
+            SELECT a.name, o.address, r.status
+FROM pizzaservice.ordering o, pizzaservice.ordered_article r, pizzaservice.article a
+WHERE a.article_id = r.article_id AND r.ordering_id = o.ordering_id AND o.ordering_id = $order_id;";
             $recordset = $this->_database->query($sql);
             if (!$recordset) {
                 throw new Exception("Order-Abfrage fehlgeschlagen: " . $this->database->error);
             }
-            $record = $recordset->fetch_assoc();
-            while ($record) {
-                $name = $record['name'];
-                $status_number = $record['status'];
-                $status = $this->stateToString($status_number);
-                $customerOrder['article_name'][] = $name;
-                $customerOrder['article_status'][] = $status;
-                $record = $recordset->fetch_assoc();
-            }
+            $all_orders[] = new Kundenbestellung($order_id, $recordset);
             $recordset->free();
         }
-
-        return $customerOrders;
+        return $all_orders;
     }
 
     /**
@@ -131,16 +120,12 @@ WHERE a.article_id = o.article_id AND o.ordering_id = $order_id;";
 <section id="kundenliste">
 
 HEREDOC;
-        foreach ($allOrders as $orderId => $order) {
-            $customer_name = $order['customer_name'];
-            $article_names = $order['article_name'];
-            $article_status = $order['article_status'];
-            $this->addOrder($customer_name, $orderId, $article_names, $article_status);
+        foreach ($allOrders as $order) {
+
+            $this->addOrder($order);
         }
         echo <<<HEREDOC
 </section>
-<input type="button" name="bestellen_button" value="Neue Bestellung" onclick="window.open('Bestellung.php', '_blank')">
-
 HEREDOC;
 
         $this->generatePageFooter();
@@ -175,14 +160,15 @@ HEREDOC;
         }
     }
 
-    private function addOrder(string $customer_name, int $order_id, array $article_names, array $article_status): void {
+    private function addOrder(Kundenbestellung $order): void {
         echo <<<HEREDOC
 <article>
     <fieldset>
-        <h2>$customer_name Order: $order_id</h2>
+        <h2>$order->username Order: $order->order_id</h2>
 HEREDOC;
-        for ($i = 0; $i < count($article_names); $i++) {
-            echo "<p>$article_names[$i]: $article_status[$i]</p>\n";
+        for ($i = 0; $i < count($order->pizza_status); $i++) {
+            $status = $this->stateToString($order->pizza_status[$i]['status']);
+            echo "<p>{$order->pizza_status[$i]['pizza_name']}: $status</p>\n";
         }
         echo <<<HEREDOC
     </fieldset>
