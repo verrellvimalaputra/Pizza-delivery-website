@@ -94,6 +94,7 @@ HAVING MIN(r.status) >= 2 AND MIN(r.status) != 4;";
             ];
             $record = $recordset->fetch_assoc();
         }
+        $recordset->free();
         return $all_deliveries;
     }
 
@@ -124,6 +125,12 @@ HEREDOC;
         <input type = "submit" value = "update">
         </form>
 </section>
+        <script>
+        // Refresh the page every 10 seconds
+        setTimeout(function() {
+        window.location.reload();
+        }, 10000);
+        </script>
 
 HEREDOC;
 
@@ -139,16 +146,20 @@ HEREDOC;
     protected function processReceivedData():void
     {
         //var_dump($_POST);
-        parent::processReceivedData();
-        if(count($_POST)){
+        if (!empty($_POST)) {
             foreach ($_POST as $key => $value) {
-                $sql = "UPDATE ordered_article
-                    SET status = $value
-                    WHERE ordering_id = $key";
-            $this->_database->query($sql);
+                // Ensure key and value are set and not empty
+                if (isset($key) && isset($value)) {
+                    $key = intval($key);        // Ensure $key is treated as an integer
+                    $value = intval($value);    // Ensure $value is treated as an integer
+                    $sql = "UPDATE ordered_article
+                            SET status = $value
+                            WHERE ordering_id = $key";
+                    $this->_database->query($sql);
+                }
             }
-        header("Location: Fahrer.php");
-        die();
+            header("Location: Fahrer.php");
+            die();
         }    
     }
 
