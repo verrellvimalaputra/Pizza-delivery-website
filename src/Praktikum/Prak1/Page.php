@@ -73,7 +73,9 @@ abstract class Page
      */
     public function __destruct()
     {
-        // to do: close database
+        if (isset($this->_database)) {
+            $this->_database->close();
+        }
     }
 
     /**
