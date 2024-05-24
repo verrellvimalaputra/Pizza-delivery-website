@@ -111,31 +111,50 @@ class Pizzabaecker extends Page
      * @return void
      */
 
-    protected function generateView(): void
-    {
-        $all_pizzaorders = $this->getViewData(); //NOSONAR ignore unused $data
-        $this->generatePageHeader('1337_Pizza Pizzabäcker'); //to do: set optional parameters
-        // to do: output view of this page
-        echo <<<HEREDOC
-<h1>Pizza Bestellstatus</h1>
-<section id="bestellungen">
-<form method = "POST" action = "Baecker.php">
-<table id="bestellungenstatus" border="0">
-<tr>
-    <th>Pizza</th>
-    <th>bestellt</th>
-    <th>im Ofen</th>
-    <th>fertig</th>
-</tr>
-HEREDOC;
-        foreach ($all_pizzaorders as $pizzaorders) {
-            $this->generatePizzaOrderList($pizzaorders['ordered_article_id'], $pizzaorders['article_name'], $pizzaorders['status']);
-        }
-        echo <<<HEREDOC
-        </table><input type = "submit" value = "update"></form>
-    HEREDOC;
-        $this->generatePageFooter();
-    }
+     protected function generateView(): void
+     {
+         $all_pizzaorders = $this->getViewData();
+         $this->generatePageHeader('1337_Pizza Pizzabäcker');
+     
+         echo <<<HEREDOC
+     <h1>Pizza Bestellstatus</h1>
+     <section id="bestellungen">
+     HEREDOC;
+     
+         if (empty($all_pizzaorders)) {
+             // Display message when there are no orders to process
+             echo '<p>There are no orders to process at the moment.</p>';
+         } else {
+             // Generate the table as usual
+             echo <<<HEREDOC
+     <form method="POST" action="Baecker.php">
+     <table id="bestellungenstatus" border="0">
+     <tr>
+         <th>Pizza</th>
+         <th>bestellt</th>
+         <th>im Ofen</th>
+         <th>fertig</th>
+     </tr>
+     HEREDOC;
+             foreach ($all_pizzaorders as $pizzaorders) {
+                 $this->generatePizzaOrderList($pizzaorders['ordered_article_id'], $pizzaorders['article_name'], $pizzaorders['status']);
+             }
+             echo <<<HEREDOC
+     </table><input type="submit" value="update"></form>
+     HEREDOC;
+         }
+         echo <<< HEREDOC
+         </section>
+         <script>
+        // Refresh the page every 10 seconds
+        setTimeout(function() {
+        window.location.reload();
+        }, 10000);
+        </script>
+        HEREDOC;
+
+         $this->generatePageFooter();
+     }
 
     /**
      * Processes the data that comes via GET or POST.
@@ -185,9 +204,9 @@ HEREDOC;
         echo <<<HEREDOC
         <tr>
         <td>$article_name</td>
-        <td><input type="radio" name= {$ordered_article_id} value= 1 $bestellt_checked> Bestellt</td>
-        <td><input type="radio" name= {$ordered_article_id} value= 2 $im_ofen_checked> Im Ofen</td>
-        <td><input type="radio" name= {$ordered_article_id} value= 3 $fertig_checked> Fertig</td>
+        <td><input type="radio" name= {$ordered_article_id} value= 0 $bestellt_checked> Bestellt</td>
+        <td><input type="radio" name= {$ordered_article_id} value= 1 $im_ofen_checked> Im Ofen</td>
+        <td><input type="radio" name= {$ordered_article_id} value= 2 $fertig_checked> Fertig</td>
     </tr>
 HEREDOC;
     }
