@@ -130,6 +130,7 @@ class Pizzabaecker extends Page
      <form method="POST" action="Baecker.php">
      <table id="bestellungenstatus">
      <tr>
+         <th>Order Id</th>
          <th>Pizza</th>
          <th>bestellt</th>
          <th>im Ofen</th>
@@ -137,7 +138,7 @@ class Pizzabaecker extends Page
      </tr>
      HEREDOC;
              foreach ($all_pizzaorders as $pizzaorders) {
-                 $this->generatePizzaOrderList($pizzaorders['ordered_article_id'], $pizzaorders['article_name'], $pizzaorders['status']);
+                 $this->generatePizzaOrderList($pizzaorders['ordered_article_id'], $pizzaorders['ordering_id'], $pizzaorders['article_name'], $pizzaorders['status']);
              }
              echo <<<HEREDOC
      </table><input type="submit" value="update"></form>
@@ -178,7 +179,7 @@ class Pizzabaecker extends Page
         }    
     }
 
-    private function generatePizzaOrderList($ordered_article_id, $article_name, $status): void
+    private function generatePizzaOrderList($ordered_article_id, $ordering_id, $article_name, $status): void
     {
         // Initialize variables to store the status for each radio button
         $bestellt_checked = '';
@@ -203,6 +204,7 @@ class Pizzabaecker extends Page
         }
         echo <<<HEREDOC
         <tr>
+        <td>$ordering_id</td>
         <td>$article_name</td>
         <td><input type="radio" name= {$ordered_article_id} value= 0 $bestellt_checked> Bestellt</td>
         <td><input type="radio" name= {$ordered_article_id} value= 1 $im_ofen_checked> Im Ofen</td>
