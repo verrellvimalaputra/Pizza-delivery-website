@@ -183,6 +183,8 @@ HEREDOC;
                 VALUES ('$order_id', '$article_id')";
                 $this->_database->query($sql);
             }
+            session_start();
+            $_SESSION['order_id'] = $order_id;
             header('Location: Kunde.php'); die;
         }
 

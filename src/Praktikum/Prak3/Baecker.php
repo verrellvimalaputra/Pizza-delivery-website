@@ -88,7 +88,7 @@ class Pizzabaecker extends Page
 
             // Store the data in an associative array
             $pizzaorder_data = array(
-                'ordered_article_id' => $ordered_article_id,
+                'ordered_article_id'=> $ordered_article_id,
                 'ordering_id' => $ordering_id,
                 'article_id' => $article_id,
                 'article_name' => $article_name,
@@ -111,24 +111,24 @@ class Pizzabaecker extends Page
      * @return void
      */
 
-    protected function generateView(): void
-    {
-        $all_pizzaorders = $this->getViewData();
-        $this->generatePageHeader('1337_Pizza Pizzabäcker');
+     protected function generateView(): void
+     {
+         $all_pizzaorders = $this->getViewData();
+         $this->generatePageHeader('1337_Pizza Pizzabäcker');
 
-        echo <<<HEREDOC
+         echo <<<HEREDOC
      <h1>Pizza Bestellstatus</h1>
      <section id="bestellungen">
      HEREDOC;
 
-        if (empty($all_pizzaorders)) {
-            // Display message when there are no orders to process
-            echo '<p>There are no orders to process at the moment.</p>';
-        } else {
-            // Generate the table as usual
-            echo <<<HEREDOC
+         if (empty($all_pizzaorders)) {
+             // Display message when there are no orders to process
+             echo '<p>There are no orders to process at the moment.</p>';
+         } else {
+             // Generate the table as usual
+             echo <<<HEREDOC
      <form method="POST" action="Baecker.php">
-     <table id="bestellungenstatus" border="0">
+     <table id="bestellungenstatus">
      <tr>
          <th>Pizza</th>
          <th>bestellt</th>
@@ -136,14 +136,14 @@ class Pizzabaecker extends Page
          <th>fertig</th>
      </tr>
      HEREDOC;
-            foreach ($all_pizzaorders as $pizzaorders) {
-                $this->generatePizzaOrderList($pizzaorders['ordered_article_id'], $pizzaorders['article_name'], $pizzaorders['status']);
-            }
-            echo <<<HEREDOC
+             foreach ($all_pizzaorders as $pizzaorders) {
+                 $this->generatePizzaOrderList($pizzaorders['ordered_article_id'], $pizzaorders['article_name'], $pizzaorders['status']);
+             }
+             echo <<<HEREDOC
      </table><input type="submit" value="update"></form>
      HEREDOC;
-        }
-        echo <<<HEREDOC
+         }
+         echo <<< HEREDOC
          </section>
          <script>
         // Refresh the page every 10 seconds
@@ -153,8 +153,8 @@ class Pizzabaecker extends Page
         </script>
         HEREDOC;
 
-        $this->generatePageFooter();
-    }
+         $this->generatePageFooter();
+     }
 
     /**
      * Processes the data that comes via GET or POST.
@@ -166,20 +166,16 @@ class Pizzabaecker extends Page
     protected function processReceivedData(): void
     {
         parent::processReceivedData();
-        if (!empty($_POST)) {
+        if(count($_POST)){
             foreach ($_POST as $key => $value) {
-                if (isset($key) && isset($value)) {
-                    $key = intval($key);        // Ensure $key is treated as an integer
-                    $value = intval($value);    // Ensure $value is treated as an integer
-                    $sql = "UPDATE ordered_article
+                $sql = "UPDATE ordered_article
                     SET status = $value
                     WHERE ordered_article_id = $key";
-                    $this->_database->query($sql);
-                }
+            $this->_database->query($sql);
             }
-            header("Location: Baecker.php");
-            die();
-        }
+        header("Location: Baecker.php");
+        die();
+        }    
     }
 
     private function generatePizzaOrderList($ordered_article_id, $article_name, $status): void
@@ -202,7 +198,7 @@ class Pizzabaecker extends Page
                     $fertig_checked = 'checked';
                     break;
                 default:
-                    break;
+                    throw new Exception('wrong status detected!');
             }
         }
         echo <<<HEREDOC

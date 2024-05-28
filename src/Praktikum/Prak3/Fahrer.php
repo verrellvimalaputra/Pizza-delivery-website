@@ -117,6 +117,11 @@ HAVING MIN(r.status) >= 2 AND MIN(r.status) != 4;";
         } else {
 
         echo <<<HEREDOC
+<script>
+    window.setInterval(function () {
+        location.reload();
+    }, 10000);
+</script>
 <h1>Fahrer (Auslieferbare Bestellungen)</h1>
     <section id="Bestellungen">
     <form action="Fahrer.php" method="POST" accept-charset="UTF-8">

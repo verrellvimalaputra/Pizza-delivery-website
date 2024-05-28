@@ -70,10 +70,15 @@ class Kunde extends Page
         // to do: return array containing data
         $all_orders = array();
         $all_order_ids = array();
+        $order_id = "AND o.ordering_id = ";
+        if (isset($_SESSION['order_id']))
+            $order_id .= $_SESSION['order_id'];
+        else
+            $order_id = "";
         $sql = "
 SELECT o.ordering_id
 FROM pizzaservice.ordering o, pizzaservice.ordered_article r
-WHERE o.ordering_id = r.ordering_id
+WHERE o.ordering_id = r.ordering_id $order_id
 GROUP BY o.ordering_id
 HAVING MIN(r.status) < 4
 ORDER BY o.ordering_id;";
@@ -141,6 +146,7 @@ HEREDOC;
     {
         parent::processReceivedData();
         // to do: call processReceivedData() for all members
+        session_start();
     }
 
     private function stateToString($status):string
