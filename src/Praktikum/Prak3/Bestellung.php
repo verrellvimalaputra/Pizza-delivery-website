@@ -126,7 +126,7 @@ class Bestellung extends Page
     <h2>Speisekarte</h2>
 HEREDOC;
         foreach ($all_pizzas as $pizza) {
-            $this->addPizzaArticle($pizza['name'], $pizza['price'], $pizza['picture']);
+            $this->addPizzaArticle(htmlspecialchars($pizza['name']), $pizza['price'], $pizza['picture']);
         }
         $this->addShoppingCart($all_pizzas);
         echo '</section>';

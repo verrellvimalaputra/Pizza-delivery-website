@@ -128,7 +128,7 @@ HAVING MIN(r.status) >= 2 AND MIN(r.status) != 4;";
 HEREDOC;
         foreach ($all_deliveries as $order_id => $order) {
             $this->addDelivery(
-                $order_id, $order['address'], $order['ordered_pizzas'],
+                $order_id, htmlspecialchars($order['address']), $order['ordered_pizzas'],
                 $order['order_price'], $order['status']);
         }
         echo <<<HEREDOC
